@@ -13,6 +13,11 @@ datasource db {
 model Order {
     id Int @id @default(autoincrement())
     pizzas PizzasOnOrders[]
+    customer User @relation(fields: [customerId], references: [id])
+    customerId Int
+    status OrderStatus @default(NEW)
+    startedAt DateTime @default("2000-01-01T00:00:00+00:00")
+    finishedAt DateTime @default("2000-01-01T00:00:00+00:00")
 }
 
 model Pizza {
@@ -28,4 +33,24 @@ model PizzasOnOrders {
     orderId Int
 
     @@id([pizzaId, orderId])
+}
+
+model User {
+    id Int @id @default(autoincrement())
+    orders Order[]
+    username String @unique
+    password String
+}
+
+enum OrderStatus {
+    NEW
+    FINISHED
+    CANCELLED
+    EXPIRED
+}
+
+enum UserRole {
+    ADMIN
+    STAFF
+    CUSTOMER
 }

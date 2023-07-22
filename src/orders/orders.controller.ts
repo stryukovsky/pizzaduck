@@ -1,16 +1,28 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
-import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, BadRequestException, ParseIntPipe, Param, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
-import { Order, Prisma } from '@prisma/client';
+import { Order } from '@prisma/client';
 import { CreateOrderDTO, DetailsOrderDTO } from './order.dto';
+import { PizzasService } from 'src/pizzas/pizzas.service';
 
 @Controller('orders')
 @ApiTags('orders')
 export class OrdersController {
-    constructor(private ordersService: OrdersService) {}
+    constructor(private ordersService: OrdersService, private pizzasService: PizzasService) {}
 
     @Post()
-    public create(@Body() order: CreateOrderDTO): Promise<Order> {
+    public async create(@Body() order: CreateOrderDTO): Promise<Order> {
+        const pizzas = await this.pizzasService.list();
+        const pizzaIds = pizzas.map(pizza => pizza.id);
+        let orderIsValid = true;
+        order.pizzas.forEach(pizzaId => {
+            if (!pizzaIds.includes(pizzaId)) {
+                orderIsValid = false;
+            }
+        });
+        if (!orderIsValid) {
+            throw new BadRequestException("Pizzas mentioned do not exist");
+        }
         return this.ordersService.create(order);
     }
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Order, OrderPayload, Prisma } from '@prisma/client';
+import { Order, OrderStatus, OrderPayload, Prisma } from '@prisma/client';
 import { CreateOrderDTO, DetailsOrderDTO } from './order.dto';
 
 @Injectable()
@@ -9,11 +9,17 @@ export class OrdersService {
 
     public create(order: CreateOrderDTO): Promise<Order> {
         const pizzasArray = order.pizzas.map(pizzaId => { return { pizzaId } });
+        const now = new Date();
+        const oneHourShift = new Date();
+        oneHourShift.setHours(oneHourShift.getHours() + 1);
         return this.prisma.order.create({
             data: {
                 pizzas: {
                     create: pizzasArray
-                }
+                },
+                status: OrderStatus.NEW,
+                startedAt: now,
+                finishedAt: oneHourShift,
             }
         });
     }

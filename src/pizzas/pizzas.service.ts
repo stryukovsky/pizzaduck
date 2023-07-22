@@ -13,4 +13,8 @@ export class PizzasService {
             data: createPizza
         });
     }
+
+    public list(): Promise<Pizza[]> {
+        return this.prisma.pizza.findMany();
+    }
 }
